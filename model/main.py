@@ -2,9 +2,12 @@ import os
 import pandas as pd
 from googleapiclient.discovery import build
 from tqdm import tqdm
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Konfigurasi API
-API_KEY = 'YOUR_API_KEY'  # Ganti dengan API key Anda
+API_KEY = os.getenv('API_KEY')
 YOUTUBE_API_SERVICE_NAME = 'youtube'
 YOUTUBE_API_VERSION = 'v3'
 
