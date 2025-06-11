@@ -89,10 +89,8 @@ def main():
     # Keyword untuk kebijakan publik (sesuaikan dengan kebutuhan)
     keywords = [
         'kebijakan publik indonesia',
-        'politik indonesia',
-        'pemerintahan jokowi',
-        'uu cipta kerja',
-        'kebijakan sosial pemerintah'
+        'kinerja pemerintahan indonesia',
+        'izin tambang raja ampat',
     ]
     
     all_comments = []
