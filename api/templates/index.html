@@ -4,58 +4,255 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analisis Sentimen Komentar YouTube</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'fadeIn': 'fadeIn 0.8s ease-in-out',
+                        'slideUp': 'slideUp 1s ease-out',
+                        'float': 'float 6s ease-in-out infinite',
+                        'bounce-slow': 'bounce 3s infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(30px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-20px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body {
-            background-color: #f8f9fa;
-            padding-top: 2rem;
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        .container {
-            max-width: 800px;
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .form-container {
-            background: white;
-            border-radius: 10px;
-            padding: 2rem;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        .glass-overlay {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        .error-message {
-            color: red;
-            margin-bottom: 1rem;
+        .hover-lift:hover {
+            transform: translateY(-5px);
+        }
+        .input-glow:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="form-container">
-            <h1 class="text-center mb-4">Analisis Sentimen Komentar YouTube</h1>
-            
-            {% if error %}
-                <div class="alert alert-danger">{{ error }}</div>
-            {% endif %}
-            
-            <form action="/analyze" method="POST">
-                <div class="mb-3">
-                    <label for="youtube_url" class="form-label">Masukkan URL Video YouTube:</label>
-                    <input type="url" class="form-control" id="youtube_url" name="youtube_url" 
-                           placeholder="Contoh: https://www.youtube.com/watch?v=VIDEO_ID" required>
+<body class="min-h-screen gradient-bg relative overflow-y-auto">
+    <!-- Background decorative elements -->
+    <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute top-20 left-10 w-4 h-4 bg-white rounded-full opacity-20 animate-float"></div>
+        <div class="absolute top-40 right-20 w-6 h-6 bg-red-300 rounded-full opacity-30" style="animation: bounce 3s infinite; animation-delay: 1s;"></div>
+        <div class="absolute bottom-40 left-20 w-3 h-3 bg-purple-300 rounded-full opacity-25 animate-float" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-20 right-10 w-5 h-5 bg-pink-300 rounded-full opacity-20" style="animation: bounce 3s infinite; animation-delay: 0.5s;"></div>
+    </div>
+
+    <div class="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
+        <div class="w-full max-w-4xl">
+            <!-- Hero Section -->
+            <div class="text-center mb-12" style="animation: fadeIn 0.8s ease-in-out;">
+                <div class="flex justify-center mb-6">
+                    <div class="w-20 h-20 bg-red-500 rounded-3xl flex items-center justify-center shadow-2xl" style="animation: bounce 3s infinite;">
+                        <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">Analisis Komentar</button>
-            </form>
-            
-            <div class="mt-4">
-                <h5>Cara menggunakan:</h5>
-                <ol>
-                    <li>Salin URL video YouTube dari address bar browser</li>
-                    <li>Tempel URL di form di atas</li>
-                    <li>Klik tombol "Analisis Komentar"</li>
-                    <li>Tunggu beberapa saat sampai proses selesai</li>
-                </ol>
-                <p class="text-muted">Aplikasi ini akan menganalisis sentimen komentar menggunakan model AI bahasa Indonesia.</p>
+                <h1 class="text-5xl md:text-7xl font-bold text-white mb-6">
+                    Analisis Sentimen
+                </h1>
+                <h2 class="text-3xl md:text-4xl font-semibold text-white mb-4 opacity-90">
+                    Kebijakan Publik
+                </h2>
+                <p class="text-xl text-white opacity-80 max-w-2xl mx-auto leading-relaxed">
+                    Analisis mendalam sentiment komentar YouTube menggunakan AI dan machine learning untuk memahami opini audiens
+                </p>
+            </div>
+
+            <!-- Main Form Container -->
+            <div class="glass-card rounded-3xl shadow-2xl p-8 md:p-12 hover-lift transition-all duration-300" style="animation: slideUp 1s ease-out;">
+                <!-- Error Message -->
+                {% if error %}
+                <div class="mb-8 p-6 bg-red-50 border-l-4 border-red-500 rounded-2xl">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-red-700 font-medium">{{ error }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Form -->
+                <form action="/analyze" method="POST" class="space-y-8">
+                    <div>
+                        <label for="youtube_url" class="block text-xl font-bold text-gray-800 mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                                    </svg>
+                                </div>
+                                Masukkan URL Video YouTube
+                            </div>
+                        </label>
+                        <div class="relative">
+                            <input type="url" 
+                                   class="w-full px-6 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 input-glow bg-gray-50 hover:bg-white transition-all duration-300" 
+                                   id="youtube_url" 
+                                   name="youtube_url" 
+                                   placeholder="https://www.youtube.com/watch?v=VIDEO_ID"
+                                   required>
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-6">
+                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" 
+                            class="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white font-bold text-xl py-4 px-8 rounded-2xl shadow-2xl hover:from-purple-700 hover:via-indigo-700 hover:to-blue-700 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                        Mulai Analisis Komentar
+                        <svg class="w-5 h-5" style="animation: bounce 2s infinite;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Instructions Section -->
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- How to Use -->
+                <div class="glass-overlay rounded-3xl p-8 hover-lift transition-all duration-300" style="animation: slideUp 1s ease-out; animation-delay: 0.2s;">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-green-500 bg-opacity-20 rounded-2xl flex items-center justify-center mr-4">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white">Cara Menggunakan</h3>
+                    </div>
+                    <div class="space-y-4 text-white opacity-90">
+                        <div class="flex items-start gap-4">
+                            <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <span class="text-sm font-bold">1</span>
+                            </div>
+                            <p>Buka video YouTube yang ingin dianalisis komentarnya</p>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <span class="text-sm font-bold">2</span>
+                            </div>
+                            <p>Salin URL dari address bar browser Anda</p>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <span class="text-sm font-bold">3</span>
+                            </div>
+                            <p>Tempel URL di form di atas dan klik tombol analisis</p>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <span class="text-sm font-bold">4</span>
+                            </div>
+                            <p>Tunggu proses analisis selesai dan lihat hasilnya</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features -->
+                <div class="glass-overlay rounded-3xl p-8 hover-lift transition-all duration-300" style="animation: slideUp 1s ease-out; animation-delay: 0.4s;">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-blue-500 bg-opacity-20 rounded-2xl flex items-center justify-center mr-4">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white">Fitur Unggulan</h3>
+                    </div>
+                    <div class="space-y-4 text-white opacity-90">
+                        <div class="flex items-start gap-4">
+                            <div class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <span class="text-xs text-white">●</span>
+                            </div>
+                            <p><strong>AI Bahasa Indonesia</strong> - Model khusus untuk analisis teks Indonesia</p>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <span class="text-xs text-white">●</span>
+                            </div>
+                            <p><strong>Visualisasi Word Cloud</strong> - Lihat kata-kata populer dalam bentuk visual</p>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <span class="text-xs text-white">●</span>
+                            </div>
+                            <p><strong>Analisis Lengkap</strong> - Positif, negatif, dan netral dengan persentase</p>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <span class="text-xs text-white">●</span>
+                            </div>
+                            <p><strong>Sample Komentar</strong> - Lihat contoh komentar dengan hasil analisanya</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Banner -->
+            <div class="mt-12 glass-overlay rounded-3xl p-6 text-center hover-lift transition-all duration-300" style="animation: slideUp 1s ease-out; animation-delay: 0.6s;">
+                <div class="flex items-center justify-center gap-3 text-white">
+                    <svg class="w-6 h-6 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-lg opacity-90">
+                        Aplikasi ini menggunakan <strong>teknologi AI</strong> untuk menganalisis sentimen komentar dalam bahasa Indonesia dengan akurasi tinggi
+                    </p>
+                </div>
             </div>
         </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Add form submission loading state
+        const form = document.querySelector('form');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        
+        form.addEventListener('submit', function(e) {
+            submitBtn.innerHTML = `
+                <svg class="w-6 h-6 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Menganalisis Komentar...
+            `;
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+        });
+    </script>
 </body>
 </html>
