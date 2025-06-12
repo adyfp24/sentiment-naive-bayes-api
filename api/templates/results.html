@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasil Analisis Sentimen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in': 'fadeIn 0.6s ease-in-out',
+                        'slide-up': 'slideUp 0.8s ease-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        .progress-bar {
+            transition: width 1.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg">
+    <!-- Hero Section -->
+    <div class="relative overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-20"></div>
+        <div class="relative z-10 container mx-auto px-4 py-12">
+            <div class="text-center text-white animate-fade-in">
+                <h1 class="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                    Hasil Analisis Sentimen
+                </h1>
+                <p class="text-xl md:text-2xl opacity-90 mb-8">Analisis mendalam terhadap sentimen komentar YouTube</p>
+                <div class="glass-effect rounded-2xl p-6 max-w-4xl mx-auto">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                </svg>
+                            </div>
+                            <div class="text-left">
+                                <p class="text-sm opacity-75">Video URL:</p>
+                                <a href="{{ youtube_url }}" target="_blank" class="text-blue-200 hover:text-white transition-colors font-medium break-all">
+                                    {{ youtube_url }}
+                                </a>
+                            </div>
+                        </div>
+                        <div class="text-center md:text-right">
+                            <p class="text-sm opacity-75">Total Komentar</p>
+                            <p class="text-3xl font-bold text-yellow-300">{{ total_comments }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-12">
+        <!-- Sentiment Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 animate-slide-up">
+            <!-- Positive -->
+            <div class="bg-white rounded-3xl p-8 shadow-2xl card-hover border-t-4 border-green-500">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-green-600 mb-2">Positif</h3>
+                    <div class="text-4xl font-bold text-gray-800 mb-4">{{ positive_count }}</div>
+                    <div class="text-lg text-green-600 font-medium mb-4">{{ positive_percent }}%</div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-green-400 to-green-600 h-3 rounded-full progress-bar" style="width: {{ positive_percent }}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Neutral -->
+            <div class="bg-white rounded-3xl p-8 shadow-2xl card-hover border-t-4 border-blue-500">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-blue-600 mb-2">Netral</h3>
+                    <div class="text-4xl font-bold text-gray-800 mb-4">{{ neutral_count }}</div>
+                    <div class="text-lg text-blue-600 font-medium mb-4">{{ neutral_percent }}%</div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-blue-400 to-blue-600 h-3 rounded-full progress-bar" style="width: {{ neutral_percent }}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Negative -->
+            <div class="bg-white rounded-3xl p-8 shadow-2xl card-hover border-t-4 border-red-500">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-red-600 mb-2">Negatif</h3>
+                    <div class="text-4xl font-bold text-gray-800 mb-4">{{ negative_count }}</div>
+                    <div class="text-lg text-red-600 font-medium mb-4">{{ negative_percent }}%</div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-red-400 to-red-600 h-3 rounded-full progress-bar" style="width: {{ negative_percent }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visualizations -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <!-- Word Cloud -->
+            <div class="bg-white rounded-3xl p-8 shadow-2xl card-hover animate-slide-up">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mr-4">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-800">Word Cloud</h3>
+                        <p class="text-gray-600">Kata-kata paling sering muncul dalam komentar positif</p>
+                    </div>
+                </div>
+                <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 p-6">
+                    <img src="data:image/png;base64,{{ wordcloud_img }}" class="w-full h-auto rounded-xl shadow-lg" alt="Word Cloud">
+                </div>
+            </div>
+
+            <!-- Sentiment Chart -->
+            <div class="bg-white rounded-3xl p-8 shadow-2xl card-hover animate-slide-up">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mr-4">
+                        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-800">Distribusi Sentimen</h3>
+                        <p class="text-gray-600">Visualisasi proporsi sentimen komentar</p>
+                    </div>
+                </div>
+                <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 p-6">
+                    <img src="data:image/png;base64,{{ sentiment_chart }}" class="w-full h-auto rounded-xl shadow-lg" alt="Sentiment Chart">
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments Sample -->
+        <div class="bg-white rounded-3xl p-8 shadow-2xl animate-slide-up">
+            <div class="flex items-center mb-8">
+                <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mr-4">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-3xl font-bold text-gray-800">Contoh Komentar yang Dianalisis</h3>
+                    <p class="text-gray-600 mt-2">Sample komentar dengan hasil analisis sentimen</p>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                {% for result in results %}
+                <div class="relative overflow-hidden rounded-2xl border-l-4 {% if result.sentiment == 'positive' %}border-green-500 bg-green-50{% elif result.sentiment == 'neutral' %}border-blue-500 bg-blue-50{% else %}border-red-500 bg-red-50{% endif %} p-6 card-hover">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 {% if result.sentiment == 'positive' %}bg-green-500{% elif result.sentiment == 'neutral' %}bg-blue-500{% else %}bg-red-500{% endif %} rounded-full flex items-center justify-center mr-3">
+                                {% if result.sentiment == 'positive' %}
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                {% elif result.sentiment == 'neutral' %}
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                {% else %}
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                {% endif %}
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-sm font-medium {% if result.sentiment == 'positive' %}bg-green-200 text-green-800{% elif result.sentiment == 'neutral' %}bg-blue-200 text-blue-800{% else %}bg-red-200 text-red-800{% endif %}">
+                                {{ result.sentiment|title }} ({{ result.score }})
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-1">Komentar Asli:</h4>
+                            <p class="text-gray-800 italic">{{ result.original_text }}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-700 mb-1">Setelah Preprocessing:</h4>
+                            <p class="text-gray-600 font-mono text-sm bg-white p-3 rounded-lg">{{ result.processed_text }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Action Button -->
+        <div class="text-center mt-12">
+            <a href="/" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-2xl shadow-2xl hover:from-purple-700 hover:to-indigo-700 transform hover:scale-105 transition duration-300">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.121 2.122"/>
+                </svg>
+                Analisis Video Lain
+            </a>
+        </div>
+    </div>
+
+    <!-- Floating Animation Elements -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute top-20 left-10 w-2 h-2 bg-white rounded-full opacity-20 animate-pulse-slow"></div>
+        <div class="absolute top-40 right-20 w-3 h-3 bg-blue-300 rounded-full opacity-30 animate-pulse-slow" style="animation-delay: 1s;"></div>
+        <div class="absolute bottom-40 left-20 w-2 h-2 bg-purple-300 rounded-full opacity-25 animate-pulse-slow" style="animation-delay: 2s;"></div>
+        <div class="absolute bottom-20 right-10 w-4 h-4 bg-pink-300 rounded-full opacity-20 animate-pulse-slow" style="animation-delay: 0.5s;"></div>
+    </div>
+
+    <script>
+        // Add scroll animations
+        window.addEventListener('scroll', () => {
+            const cards = document.querySelectorAll('.card-hover');
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+                if (isVisible) {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        // Animate progress bars on page load
+        window.addEventListener('load', () => {
+            const progressBars = document.querySelectorAll('.progress-bar');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 500);
+            });
+        });
+    </script>
+</body>
+</html>
