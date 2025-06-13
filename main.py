@@ -131,18 +131,83 @@
 # if __name__ == '__main__':
 #     main()
 
-import csv
+# import csv
+# import re
+# from youtube_comment_downloader import YoutubeCommentDownloader
+
+# def get_youtube_comments(url, max_comments=4000, output_file="comments.csv"):
+#     """
+#     Scrape YouTube comments from a video URL and save to CSV.
+    
+#     Args:
+#         url (str): YouTube video URL.
+#         max_comments (int): Maximum number of comments to scrape.
+#         output_file (str): Output CSV filename.
+#     """
+#     try:
+#         # Extract video ID from URL
+#         video_id = re.search(r'(?:v=|\/)([0-9A-Za-z_-]{11})', url)
+#         if not video_id:
+#             print("Invalid YouTube URL. Please check the URL format.")
+#             return None
+            
+#         video_id = video_id.group(1)
+#         print(f"Scraping comments from video ID: {video_id}...")
+        
+#         # Initialize comment downloader
+#         downloader = YoutubeCommentDownloader()
+        
+#         # Open CSV file for writing
+#         with open(output_file, mode='w', encoding='utf-8', newline='') as file:
+#             writer = csv.writer(file)
+#             writer.writerow(['Comment', 'Likes', 'Time', 'Author'])  # CSV header
+            
+#             # Scrape comments
+#             count = 0
+#             for comment in downloader.get_comments_from_url(url, sort_by=1):  # sort_by=1 (Top Comments)
+#                 if count >= max_comments:
+#                     break
+                    
+#                 # Write comment data to CSV
+#                 writer.writerow([
+#                     comment['text'],
+#                     comment['votes'],
+#                     comment['time'],
+#                     comment['author']
+#                 ])
+#                 count += 1
+                
+#                 # Print progress every 100 comments
+#                 if count % 100 == 0:
+#                     print(f"Scraped {count} comments...")
+        
+#         print(f"Successfully saved {count} comments to {output_file}")
+#         return True
+        
+#     except Exception as e:
+#         print(f"Error scraping comments: {e}")
+#         return False
+
+
+# if __name__ == "__main__":
+#     # YouTube video URL (replace with your target)
+#     video_url = "https://www.youtube.com/watch?v=7CLZkPwhEG4"
+    
+#     # Run scraper
+#     get_youtube_comments(video_url, max_comments=4000, output_file="comments.csv")
+
 import re
+import pandas as pd
 from youtube_comment_downloader import YoutubeCommentDownloader
 
-def get_youtube_comments(url, max_comments=4000, output_file="comments.csv"):
+def get_youtube_comments(url, max_comments=4000, output_file="comments.xlsx"):
     """
-    Scrape YouTube comments from a video URL and save to CSV.
+    Scrape YouTube comments from a video URL and save to Excel.
     
     Args:
         url (str): YouTube video URL.
         max_comments (int): Maximum number of comments to scrape.
-        output_file (str): Output CSV filename.
+        output_file (str): Output Excel filename (.xlsx).
     """
     try:
         # Extract video ID from URL
@@ -157,29 +222,40 @@ def get_youtube_comments(url, max_comments=4000, output_file="comments.csv"):
         # Initialize comment downloader
         downloader = YoutubeCommentDownloader()
         
-        # Open CSV file for writing
-        with open(output_file, mode='w', encoding='utf-8', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(['Comment', 'Likes', 'Time', 'Author'])  # CSV header
-            
-            # Scrape comments
-            count = 0
-            for comment in downloader.get_comments_from_url(url, sort_by=1):  # sort_by=1 (Top Comments)
-                if count >= max_comments:
-                    break
-                    
-                # Write comment data to CSV
-                writer.writerow([
-                    comment['text'],
-                    comment['votes'],
-                    comment['time'],
-                    comment['author']
-                ])
-                count += 1
+        # Prepare data list
+        comments_data = []
+        
+        # Scrape comments
+        count = 0
+        for comment in downloader.get_comments_from_url(url, sort_by=1):  # sort_by=1 (Top Comments)
+            if count >= max_comments:
+                break
                 
-                # Print progress every 100 comments
-                if count % 100 == 0:
-                    print(f"Scraped {count} comments...")
+            comments_data.append({
+                'Comment': comment['text'],
+                'Likes': comment['votes'],
+                'Time': comment['time'],
+                'Author': comment['author'],
+                'Comment ID': comment['cid']  # Unique comment ID
+            })
+            count += 1
+            
+            # Print progress every 100 comments
+            if count % 100 == 0:
+                print(f"Scraped {count} comments...")
+        
+        # Convert to DataFrame
+        df = pd.DataFrame(comments_data)
+        
+        # Save to Excel with auto-adjusted column widths
+        with pd.ExcelWriter(output_file, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Comments')
+            
+            # Auto-adjust column widths
+            worksheet = writer.sheets['Comments']
+            for i, col in enumerate(df.columns):
+                max_len = max(df[col].astype(str).map(len).max(), len(col)) + 2
+                worksheet.set_column(i, i, max_len)
         
         print(f"Successfully saved {count} comments to {output_file}")
         return True
@@ -194,4 +270,4 @@ if __name__ == "__main__":
     video_url = "https://www.youtube.com/watch?v=7CLZkPwhEG4"
     
     # Run scraper
-    get_youtube_comments(video_url, max_comments=4000, output_file="comments.csv")
+    get_youtube_comments(video_url, max_comments=4000, output_file="comments.xlsx")
